@@ -8,7 +8,7 @@ io.sockets.on('connection', function (socket) {
     socket.set('nickname', name, function () {
       socket.broadcast.emit('user connected',name);
       socket.emit('ready');
-      socket.broadcast.emit('update revision',latest);
+      socket.emit('update revision',latest);
     });
   });
 

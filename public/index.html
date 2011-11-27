@@ -13,7 +13,7 @@
 <script>
   window.socket = io.connect('http://'+window.location.host+':1337');
   $(function() {
-    $("#pad").on("change", function() {
+    $("#pad").on("keyup", function() {
       socket.emit('push revision',$(this).val());
     });
 
