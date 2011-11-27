@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title></title>
+  <script src="http://code.jquery.com/jquery-1.7.1.min.js"></script>
+  <script src="/socket.io/socket.io.js"></script>
+</head>
+<body>
+<textarea name="pad" id="pad" cols="30" rows="10"></textarea>
+<div id="clientlist">
+  <ul></ul>
+</div>
+<script>
+  window.socket = io.connect('http://localhost:1337');
+  $(function() {
+    $("#pad").on("change", function() {
+      socket.emit('push revision',$(this).val());
+    });
+
+    var name = "foo"+new Date();
+    socket.emit('set nickname', name);
+    socket.on('ready', function() {
+      console.log("ready");
+      addClient(name);
+    });
+
+    socket.on('user connected', function(name) {
+      addClient(name);
+    });
+
+    socket.on('update revision', function(data) {
+      $("#pad").val(data);
+    });
+  });
+
+  function addClient(name) {
+    var $clientlist = $("#clientlist ul");
+    $clientlist.append($("<li/>").html(name));
+  }
+</script>
+</body>
+</html>
