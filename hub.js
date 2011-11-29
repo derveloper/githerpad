@@ -70,26 +70,18 @@ function getPadRevisionCount(socket,pad,broadcast) {
 }
 
 function readPadRevision(socket,pad,rev) {
-  exec('cd '+ __dirname + '/pads; git log --oneline -- ./'+pad+' | wc -l', function(err,stdout) {
-    var count = parseInt(stdout,10);
-    var head1 = count-rev+1;
-    var head2 = count-rev;
-    if(head1 == 1) head2 = "HEAD";
-    else head2 = "HEAD~"+head2;
-    head1 = "HEAD~"+head1;
-    var cmd = 'cd '+ __dirname + '/pads; git log '+head1+'..'+head2+' --oneline -- ./'+pad;
+  exec('cd '+ __dirname + '/pads; git log --oneline -- ./'+pad, function(err,stdout) {
+    var lines = stdout.split('\n').reverse();
+    var count = lines.length;
+    if(rev <= 0) rev = 1;
+    var hash = lines[rev].split(" ")[0];
+    cmd = 'cd '+ __dirname + '/pads; echo `git show '+hash+':./'+pad+'`';
     console.log(cmd);
     exec(cmd, function(err,stdout) {
       console.log(stdout);
-      var hash = stdout.split(" ")[0];
-      cmd = 'cd '+ __dirname + '/pads; echo `git show '+hash+':./'+pad+'`';
-      console.log(cmd);
-      exec(cmd, function(err,stdout) {
-        console.log(stdout);
-        var rev = stdout;
-        var payload = {pad: pad, content: rev};
-        socket.emit('update revision',payload);
-      });
+      var rev = stdout;
+      var payload = {pad: pad, content: rev};
+      socket.emit('update revision',payload);
     });
   });
 }
