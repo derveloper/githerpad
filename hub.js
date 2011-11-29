@@ -70,7 +70,7 @@ function getPadRevisionCount(socket,pad,broadcast) {
 }
 
 function readPadRevision(socket,pad,rev) {
-  exec('cd '+ __dirname + '/pads; git log --oneline -- ./'+pad, function(err,stdout) {
+  exec('cd '+ __dirname + '/pads; echo `git log --oneline -- ./'+pad+'`', function(err,stdout) {
     var lines = stdout.split('\n').reverse();
     var count = lines.length;
     if(rev <= 0) rev = 1;
