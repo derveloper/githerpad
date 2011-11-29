@@ -25,11 +25,11 @@ io.sockets.on('connection', function (socket) {
   });
 
   socket.on('push revision', function (data) {
-    socket.get('pad',function(err,name) {
-      updatePad(socket,data,name);
-    });
-    socket.get('nickname', function (err, name) {
-      console.log('revision by ', name);
+    socket.get('nickname', function (err, nickname) {
+      socket.get('pad',function(err,name) {
+        updatePad(socket,data,name,nickname);
+      });
+      console.log('revision by ', nickname);
       latest = data;
       console.log(data);
       socket.get('pad',function(err,data) {readPadAndBroadcast(socket,err,data)});
@@ -90,10 +90,10 @@ function readPadRevision(socket,pad,rev) {
   });
 }
 
-function updatePad(socket,content,pad) {
+function updatePad(socket,content,pad,name) {
   var stream = fs.createWriteStream(__dirname + '/pads/'+pad);
   stream.end(content);
-  exec('cd '+ __dirname + '/pads; git add ./'+pad+'; git commit -m"rev"', function() {getPadRevisionCount(socket,pad,true);} );
+  exec('cd '+ __dirname + '/pads; git add ./'+pad+'; git commit --author="'+name+' <'+name+'@foo.com>" -m"rev"', function() {getPadRevisionCount(socket,pad,true);} );
 }
 
 function readPad(pad,callback) {

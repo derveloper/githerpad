@@ -23,7 +23,9 @@ $(function() {
 
   socket.on('update revision', function(data) {
     if (data.pad === window.location.pathname) {
+      var carPos = $("#pad").getCursorPosition();
       $("#pad").val(data.content);
+      $("#pad").setCursorPosition(carPos);
     }
   });
 
