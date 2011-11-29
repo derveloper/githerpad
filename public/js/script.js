@@ -1,7 +1,13 @@
 window.socket = io.connect('http://' + window.location.host + ':1337');
+window.connected = false;
+window.suppressUpdate = false;
 $(function() {
   $("#pad").on("keyup", function() {
     socket.emit('push revision', $(this).val());
+  });
+
+  $("#revision").on("change", function() {
+    socket.emit('get revision', {pad:window.location.pathname,rev:$(this).val()});
   });
 
   var name = "foo" + new Date();
@@ -19,6 +25,11 @@ $(function() {
     if (data.pad === window.location.pathname) {
       $("#pad").val(data.content);
     }
+  });
+
+  socket.on("current revisions", function(count) {
+    $("#revision").attr("max",count);
+    $("#revision").val(count);
   });
 
   socket.emit('set nickname', name);

@@ -21,11 +21,12 @@ io.sockets.on('connection', function (socket) {
   socket.on('set pad', function (name) {
     socket.set('pad', name);
     socket.get('pad',function(err,data) {readPadAndPush(socket,err,data,false)});
+    getPadRevisionCount(socket,name,false);
   });
 
   socket.on('push revision', function (data) {
     socket.get('pad',function(err,name) {
-      updatePad(data,name);
+      updatePad(socket,data,name);
     });
     socket.get('nickname', function (err, name) {
       console.log('revision by ', name);
@@ -33,6 +34,10 @@ io.sockets.on('connection', function (socket) {
       console.log(data);
       socket.get('pad',function(err,data) {readPadAndBroadcast(socket,err,data)});
     });
+  });
+
+  socket.on('get revision', function(rev) {
+    readPadRevision(socket,rev.pad,rev.rev);
   });
 
   socket.on('disconnect', function(err,data) {
@@ -53,10 +58,46 @@ function handler (req, res) {
   });
 }
 
-function updatePad(content,pad) {
+function getPadRevisionCount(socket,pad,broadcast) {
+  exec('cd '+ __dirname + '/pads; git log --oneline -- ./'+pad+' | wc -l', function(err,stdout) {
+    var count = parseInt(stdout,10);
+    console.log(count);
+    if(broadcast) {
+      socket.broadcast.emit('current revisions',count);
+    }
+    socket.emit('current revisions',count);
+  });
+}
+
+function readPadRevision(socket,pad,rev) {
+  exec('cd '+ __dirname + '/pads; git log --oneline -- ./'+pad+' | wc -l', function(err,stdout) {
+    var count = parseInt(stdout,10);
+    var head1 = count-rev+1;
+    var head2 = count-rev;
+    if(head1 == 1) head2 = "HEAD";
+    else head2 = "HEAD~"+head2;
+    head1 = "HEAD~"+head1;
+    var cmd = 'cd '+ __dirname + '/pads; git log '+head1+'..'+head2+' --oneline -- ./'+pad;
+    console.log(cmd);
+    exec(cmd, function(err,stdout) {
+      console.log(stdout);
+      var hash = stdout.split(" ")[0];
+      cmd = 'cd '+ __dirname + '/pads; git show '+hash+':./'+pad;
+      console.log(cmd);
+      exec(cmd, function(err,stdout) {
+        console.log(stdout);
+        var rev = stdout;
+        var payload = {pad: pad, content: rev};
+        socket.emit('update revision',payload);
+      });
+    });
+  });
+}
+
+function updatePad(socket,content,pad) {
   var stream = fs.createWriteStream(__dirname + '/pads/'+pad);
   stream.end(content);
-  exec('cd '+ __dirname + '/pads; git add ./'+pad+'; git commit -m"rev"' );
+  exec('cd '+ __dirname + '/pads; git add ./'+pad+'; git commit -m"rev"', function() {getPadRevisionCount(socket,pad,true);} );
 }
 
 function readPad(pad,callback) {
