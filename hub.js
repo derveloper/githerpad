@@ -59,7 +59,9 @@ function handler (req, res) {
 }
 
 function getPadRevisionCount(socket,pad,broadcast) {
-  exec('cd '+ __dirname + '/pads; git log --oneline -- ./'+pad+' | wc -l', function(err,stdout) {
+  var cmd = 'cd '+ __dirname + '/pads; git log --oneline -- ./'+pad+' | wc -l';
+  console.log(cmd);
+  exec(cmd, function(err,stdout) {
     var count = parseInt(stdout,10);
     console.log(count);
     if(broadcast) {
@@ -70,7 +72,9 @@ function getPadRevisionCount(socket,pad,broadcast) {
 }
 
 function readPadRevision(socket,pad,rev) {
-  exec('cd '+ __dirname + '/pads; echo `git log --oneline -- ./'+pad+'`', function(err,stdout) {
+  var cmd = 'cd '+ __dirname + '/pads; git log --oneline -- ./'+pad+' | cat';
+  console.log(cmd);
+  exec(cmd, function(err,stdout) {
     var lines = stdout.split('\n').reverse();
     var count = lines.length;
     if(rev <= 0) rev = 1;
