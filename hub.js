@@ -34,6 +34,10 @@ io.sockets.on('connection', function (socket) {
       socket.get('pad',function(err,data) {readPadAndBroadcast(socket,err,data)});
     });
   });
+
+  socket.on('disconnect', function(err,data) {
+
+  });
 });
 
 function handler (req, res) {
