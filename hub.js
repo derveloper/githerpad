@@ -79,7 +79,7 @@ function readPadRevision(socket,pad,rev) {
     var count = lines.length;
     if(rev <= 0) rev = 1;
     var hash = lines[rev].split(" ")[0];
-    cmd = 'cd '+ __dirname + '/pads; echo `git show '+hash+':'+pad.split("/")[1]+'`';
+    cmd = 'cd '+ __dirname + '/pads; git show '+hash+':'+pad.split("/")[1]+' | cat';
     console.log(cmd);
     exec(cmd, function(err,stdout) {
       console.log(stdout);
